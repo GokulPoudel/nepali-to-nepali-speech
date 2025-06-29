@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>नेपाली Speech to Digits Converter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Hind Siliguri', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #001510);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .permission-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .permission-box h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #4facfe;
+        }
+
+        .permission-box p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 114, 255, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn.mic-btn {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
+        }
+
+        .btn.mic-btn:hover {
+            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.6);
+        }
+
+        .btn.mic-btn.listening {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(45deg, #ff0000, #ff416c);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 65, 108, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0); }
+        }
+
+        .results {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .result-box {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4facfe;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 150px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #4facfe;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+            margin-top: 15px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .status {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            min-height: 30px;
+            color: #ffcc00;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .settings-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-panel h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #4facfe;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 1.1rem;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider {
+            width: 200px;
+            height: 10px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0072ff;
+            cursor: pointer;
+        }
+
+        .timeout-display {
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .counter {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffcc00;
+            margin: 10px 0;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            .result-box {
+                min-width: 100%;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .setting-control {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-language"></i> नेपाली Speech to Digits</h1>
+            <p>Convert spoken Nepali numbers into digital format</p>
+        </div>
+        
+        <div class="content">
+            <div class="permission-box">
+                <h2><i class="fas fa-microphone-alt"></i> Microphone Access</h2>
+                <p>To use this application, please grant microphone permission. We need access to your microphone to convert your spoken Nepali numbers into digits.</p>
+                <button id="permissionBtn" class="btn">
+                    <i class="fas fa-microphone"></i> Allow Microphone Access
+                </button>
+                <div class="status" id="permissionStatus"></div>
+            </div>
+            
+            <div class="settings-panel" id="settingsPanel" style="display: none;">
+                <h3><i class="fas fa-cog"></i> Recognition Settings</h3>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Listening Timeout (seconds)
+                    </div>
+                    <div class="setting-control">
+                        <input type="range" min="5" max="60" value="15" class="slider" id="timeoutSlider">
+                        <span class="timeout-display" id="timeoutValue">15</span>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Continuous Listening
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox" id="continuousToggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Enabled</span>
+                    </div>
+                </div>
+                
+                <div class="counter">
+                    Time Remaining: <span id="timeRemaining">15</span> seconds
+                </div>
+            </div>
+            
+            <div class="controls" style="display: none; text-align: center;" id="controls">
+                <button id="recordBtn" class="btn mic-btn">
+                    <i class="fas fa-microphone"></i> Start Listening
+                </button>
+                <div class="status" id="recognitionStatus">Ready to listen for Nepali numbers</div>
+            </div>
+            
+            <div class="results">
+                <div class="result-box">
+                    <h3><i class="fas fa-comment"></i> Spoken Text</h3>
+                    <div class="result-content" id="spokenText">
+                        Your spoken Nepali will appear here...
+                    </div>
+                </div>
+                
+                <div class="result-box">
+                    <h3><i class="fas fa-hashtag"></i> Converted Digits</h3>
+                    <div class="result-content" id="convertedDigits">
+                        Converted digits will appear here...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
+                <ul>
+                    <li>Click "Allow Microphone Access" to enable speech recognition</li>
+                    <li>Adjust listening timeout in settings for longer sessions</li>
+                    <li>Click "Start Listening" and speak Nepali numbers clearly</li>
+                    <li>Supported numbers: शुन्य (0), एक (1), दुई (2), तीन (3) up to लाख (100,000) and करोड (10,000,000)</li>
+                    <li>Try phrases like "एक सय पचास" (150) or "दुई हजार चार सय" (2400)</li>
+                    <li>Click "Stop Listening" when you're finished</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Nepali Speech to Digits Converter | Powered by Web Speech API and ganesh dai</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const permissionBtn = document.getElementById('permissionBtn');
+            const recordBtn = document.getElementById('recordBtn');
+            const permissionStatus = document.getElementById('permissionStatus');
+            const recognitionStatus = document.getElementById('recognitionStatus');
+            const spokenText = document.getElementById('spokenText');
+            const convertedDigits = document.getElementById('convertedDigits');
+            const controls = document.getElementById('controls');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const timeoutSlider = document.getElementById('timeoutSlider');
+            const timeoutValue = document.getElementById('timeoutValue');
+            const timeRemaining = document.getElementById('timeRemaining');
+            const continuousToggle = document.getElementById('continuousToggle');
+            
+            // Speech recognition setup
+            let recognition = null;
+            let isListening = false;
+            let timeout = 15; // Default timeout in seconds
+            let timeoutTimer = null;
+            let continuousMode = true;
+            
+            // Update timeout display
+            timeoutSlider.addEventListener('input', () => {
+                timeout = parseInt(timeoutSlider.value);
+                timeoutValue.textContent = timeout;
+                timeRemaining.textContent = timeout;
+            });
+            
+            // Update continuous mode
+            continuousToggle.addEventListener('change', () => {
+                continuousMode = continuousToggle.checked;
+            });
+            
+            // Check for browser support
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                permissionStatus.innerHTML = "Speech recognition not supported in this browser. Try Chrome or Edge.";
+                permissionBtn.disabled = true;
+                return;
+            }
+            
+            // Nepali number mapping
+            const nepaliNumberMap = {
+                'शुन्य': '0', 'सुन्ना': '0', 'सुनी': '0',
+                'एक': '1', 'एक्क': '1', 'एक्काइ': '1',
+                'दुई': '2', 'दुइ': '2',
+                'तीन': '3',
+                'चार': '4', 'चारि': '4',
+                'पाँच': '5', 'पाच': '5',
+                'छ': '6',
+                'सात': '7',
+                'आठ': '8', 'अाठ': '8',
+                'नौ': '9', 'नाउ': '9',
+                'दस': '10',
+                'एघार': '11', 'एघारा': '11',
+                'बाह्र': '12', 'बार': '12',
+                'तेह्र': '13', 'तेहर': '13',
+                'चौध': '14', 'चौधा': '14',
+                'पन्ध्र': '15', 'पन्धर': '15',
+                'सोह्र': '16', 'सोहर': '16',
+                'सत्र': '17',
+                'अठार': '18',
+                'उन्नाइस': '19',
+                'बीस': '20',
+                'एक्काइस': '21',
+                'बाइस': '22',
+                'तेइस': '23',
+                'चौबीस': '24',
+                'पच्चीस': '25',
+                'छब्बीस': '26',
+                'सत्ताइस': '27',
+                'अठ्ठाइस': '28',
+                'उनन्तीस': '29',
+                'तीस': '30',
+                'एकतीस': '31',
+                'बत्तीस': '32',
+                'तेत्तीस': '33',
+                'चौंतीस': '34',
+                'पैंतीस': '35',
+                'छत्तीस': '36',
+                'सैंतीस': '37',
+                'अठतीस': '38',
+                'उनन्चालीस': '39',
+                'चालीस': '40',
+                'एकचालीस': '41',
+                'बयालीस': '42',
+                'त्रियालीस': '43',
+                'चवालीस': '44',
+                'पैंतालीस': '45',
+                'छयालीस': '46',
+                'सतचालीस': '47',
+                'अठचालीस': '48',
+                'उनन्चास': '49',
+                'पचास': '50',
+                'एकाउन्न': '51',
+                'बाउन्न': '52',
+                'त्रिपन्न': '53',
+                'चउन्न': '54',
+                'पचपन्न': '55',
+                'छप्पन्न': '56',
+                'सन्ताउन्न': '57',
+                'अन्ठाउन्न': '58',
+                'उनन्साठी': '59',
+                'साठी': '60',
+                'एकसट्ठी': '61',
+                'बयसट्ठी': '62',
+                'त्रिसट्ठी': '63',
+                'चौंसट्ठी': '64',
+                'पैंसट्ठी': '65',
+                'छयसट्ठी': '66',
+                'सतसट्ठी': '67',
+                'अठसट्ठी': '68',
+                'उनन्सत्तरी': '69',
+                'सत्तरी': '70',
+                'एकहत्तर': '71',
+                'बहत्तर': '72',
+                'त्रिहत्तर': '73',
+                'चौहत्तर': '74',
+                'पचहत्तर': '75',
+                'छयहत्तर': '76',
+                'सतहत्तर': '77',
+                'अठहत्तर': '78',
+                'उनासी': '79',
+                'असी': '80',
+                'एकासी': '81',
+                'बयासी': '82',
+                'त्रियासी': '83',
+                'चौरासी': '84',
+                'पचासी': '85',
+                'छयासी': '86',
+                'सतासी': '87',
+                'अठासी': '88',
+                'उनान्नब्बे': '89',
+                'नब्बे': '90',
+                'एकान्नब्बे': '91',
+                'बयान्नब्बे': '92',
+                'त्रियान्नब्बे': '93',
+                'चौरान्नब्बे': '94',
+                'पन्चानब्बे': '95',
+                'छयान्नब्बे': '96',
+                'सन्तान्नब्बे': '97',
+                'अन्ठान्नब्बे': '98',
+                'उनान्सय': '99',
+                'एक सय': '100',
+                'दुई सय': '200',
+                'दुइ सय': '200',
+                'एक हजार': '1000',
+                'दुई हजार': '2000',
+                'एक लाख': '100000',
+                'एक करोड': '10000000',
+                'नायब': '84',
+                'आन्थन': '98',
+                'बाहुनन': '12'
+            };
+            
+            // Start timeout countdown
+            function startTimeoutCountdown() {
+                clearTimeout(timeoutTimer);
+                let seconds = timeout;
+                timeRemaining.textContent = seconds;
+                
+                const interval = setInterval(() => {
+                    seconds--;
+                    timeRemaining.textContent = seconds;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+                
+                timeoutTimer = setTimeout(() => {
+                    if (isListening) {
+                        recognition.stop();
+                        recognitionStatus.innerHTML = "Listening timeout reached. Ready to start again.";
+                        recognitionStatus.style.color = "#ffcc00";
+                    }
+                }, timeout * 1000);
+            }
+            
+            // Request microphone permission
+            permissionBtn.addEventListener('click', async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    permissionStatus.innerHTML = "Microphone access granted! <i class='fas fa-check-circle'></i>";
+                    permissionStatus.style.color = "#4caf50";
+                    
+                    // Hide permission box and show controls
+                    permissionBtn.parentElement.style.display = 'none';
+                    controls.style.display = 'block';
+                    settingsPanel.style.display = 'block';
+                    
+                    // Initialize speech recognition
+                    initSpeechRecognition();
+                    
+                    // Close the stream as we just needed permission
+                    stream.getTracks().forEach(track => track.stop());
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    permissionStatus.innerHTML = "Microphone access denied. Please allow access to use this feature.";
+                    permissionStatus.style.color = "#ff5252";
+                }
+            });
+            
+            // Initialize speech recognition
+            function initSpeechRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = continuousMode;
+                recognition.interimResults = true;
+                recognition.lang = 'ne-NP'; // Nepali language
+                
+                recognition.onstart = () => {
+                    isListening = true;
+                    recordBtn.classList.add('listening');
+                    recordBtn.innerHTML = "<i class='fas fa-microphone'></i> Stop Listening";
+                    recognitionStatus.innerHTML = "Listening... Speak Nepali numbers now";
+                    recognitionStatus.style.color = "#4caf50";
+                    
+                    // Start timeout countdown
+                    startTimeoutCountdown();
+                };
+                
+                recognition.onend = () => {
+                    isListening = false;
+                    recordBtn.classList.remove('listening');
+                    recordBtn.innerHTML = "<i class='fas fa-microphone'></i> Start Listening";
+                    
+                    if (continuousMode) {
+                        recognitionStatus.innerHTML = "Listening paused. Click to resume.";
+                    } else {
+                        recognitionStatus.innerHTML = "Ready to listen for Nepali numbers";
+                    }
+                    
+                    recognitionStatus.style.color = "#ffcc00";
+                    clearTimeout(timeoutTimer);
+                };
+                
+                recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    // Reset the timeout on speech detection
+                    clearTimeout(timeoutTimer);
+                    startTimeoutCountdown();
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    // Update the spoken text with both final and interim results
+                    spokenText.innerHTML = finalTranscript || interimTranscript;
+                    
+                    // If we have final results, convert to digits
+                    if (finalTranscript) {
+                        const digits = convertNepaliToDigits(finalTranscript);
+                        convertedDigits.innerHTML = digits;
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error', event.error);
+                    recognitionStatus.innerHTML = "Error: " + event.error;
+                    recognitionStatus.style.color = "#ff5252";
+                    clearTimeout(timeoutTimer);
+                };
+                
+                // Toggle listening on button click
+                recordBtn.addEventListener('click', () => {
+                    if (isListening) {
+                        recognition.stop();
+                    } else {
+                        recognition.start();
+                    }
+                });
+            }
+            
+            // Convert Nepali words to digits
+            function convertNepaliToDigits(text) {
+                // Split the text into words
+                const words = text.split(/\s+/);
+                let result = [];
+                
+                // Try to match phrases from longest to shortest
+                for (let i = 0; i < words.length; i++) {
+                    let found = false;
+                    
+                    // Check for multi-word matches (up to 3 words)
+                    for (let j = 3; j > 0; j--) {
+                        if (i + j > words.length) continue;
+                        
+                        const phrase = words.slice(i, i + j).join(' ');
+                        if (nepaliNumberMap.hasOwnProperty(phrase)) {
+                            result.push(nepaliNumberMap[phrase]);
+                            i += j - 1; // Skip the words we've processed
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        // If no match, keep the original word
+                        result.push(words[i]);
+                    }
+                }
+                
+                return result.join(' ');
+            }
+        });
+    </script>
+</body>
+</html>
